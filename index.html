@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Browser Control</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-gradient: linear-gradient(135deg, #2563eb, #3b82f6, #4f46e5);
+            --secondary-color: #10b981;
+            --dark-bg: #111827;
+            --panel-bg: #1f2937;
+            --text-color: #f9fafb;
+            --text-color-secondary: #9ca3af;
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+            --glow: 0 0 15px rgba(37, 99, 235, 0.5);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(37, 99, 235, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(79, 70, 229, 0.1) 0%, transparent 50%);
+        }
+        
+        header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: var(--primary-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            width: 60px;
+            height: 3px;
+            background: var(--primary-gradient);
+            transform: translateX(-50%);
+            border-radius: 3px;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .tagline {
+            font-size: 1rem;
+            color: var(--text-color-secondary);
+            max-width: 600px;
+            margin: 1rem auto;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: var(--transition);
+        }
+        
+        .panel:hover {
+            box-shadow: var(--glow);
+        }
+        
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--primary-gradient);
+        }
+        
+        .form-panel {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 180px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-color);
+            padding: 0.8rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            resize: none;
+            transition: var(--transition);
+            margin-bottom: 1rem;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+        
+        button {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            font-size: 1rem;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255, 255, 255, 0.1), transparent);
+            transition: var(--transition);
+        }
+        
+        button:hover::before {
+            opacity: 0.5;
+        }
+        
+        .status-container {
+            display: flex;
+            align-items: center;
+            color: var(--text-color-secondary);
+        }
+        
+        .status {
+            margin-left: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #22c55e; /* Green for ready */
+            display: inline-block;
+        }
+        
+        .status-dot.running {
+            background-color: #eab308; /* Yellow for running */
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-dot.error {
+            background-color: #ef4444; /* Red for error */
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+        .logs-panel {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .logs-container {
+            flex: 1;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-y: auto;
+            max-height: 400px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        #logs {
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: var(--text-color-secondary);
+        }
+        
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            color: var(--text-color-secondary);
+            font-size: 0.8rem;
+        }
+        
+        .terminal-buttons {
+            display: flex;
+            margin-right: 1rem;
+        }
+        
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        
+        .terminal-close {
+            background-color: #ef4444;
+        }
+        
+        .terminal-minimize {
+            background-color: #eab308;
+        }
+        
+        .terminal-maximize {
+            background-color: #22c55e;
+        }
+        
+        .terminal-title {
+            flex: 1;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 3px;
+            background-color: rgba(255, 255, 255, 0.1);
+            position: relative;
+            margin-bottom: 1rem;
+            border-radius: 1.5px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0;
+            background: var(--primary-gradient);
+            transition: width 0.3s ease;
+        }
+        
+        .progress-bar.indeterminate {
+            width: 50%;
+            animation: progress 1.5s infinite ease-in-out;
+        }
+        
+        @keyframes progress {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+        
+        .floating-element {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: var(--text-color-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: var(--panel-bg);
+            color: var(--text-color);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="particles"></div>
+    
+    <header>
+        <h1>AI Browser Control</h1>
+        <p class="tagline">Control your browser with natural language using advanced AI technology</p>
+    </header>
+    
+    <div class="container">
+        <div class="panel form-panel">
+            <h2>Task Input</h2>
+            <textarea id="task" placeholder="Enter your task here... e.g., 'Go to Google and search for DeepSeek V3'"></textarea>
+            
+            <div class="progress-container" id="progressContainer" style="display: none;">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div class="button-container">
+                <button id="submit">Execute Task</button>
+                <div class="status-container">
+                    Status: <span class="status-dot" id="statusDot"></span>
+                    <span class="status" id="status">Ready</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel logs-panel">
+            <h2>Execution Logs</h2>
+            <div class="terminal-header">
+                <div class="terminal-buttons">
+                    <div class="terminal-button terminal-close"></div>
+                    <div class="terminal-button terminal-minimize"></div>
+                    <div class="terminal-button terminal-maximize"></div>
+                </div>
+                <div class="terminal-title">browser-agent.log</div>
+            </div>
+            <div class="logs-container">
+                <div id="logs">Waiting for task execution...</div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Built with DeepSeek V3 and Browser-Use | <a href="https://github.com/TimHub88/browser-use-agent" target="_blank" style="color: var(--primary-color);">GitHub</a></p>
+    </footer>
+
+    <script>
+        document.getElementById('submit').addEventListener('click', function() {
+            const task = document.getElementById('task').value;
+            if (!task) {
+                alert('Please enter a task');
+                return;
+            }
+
+            const statusElement = document.getElementById('status');
+            const statusDotElement = document.getElementById('statusDot');
+            const logsElement = document.getElementById('logs');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+
+            // Update status
+            statusElement.textContent = 'Running...';
+            statusDotElement.className = 'status-dot running';
+            
+            // Show progress bar
+            progressContainer.style.display = 'block';
+            progressBar.className = 'progress-bar indeterminate';
+            
+            // Send the task to the backend
+            fetch('/execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ task })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Status will be updated by the polling function
+                } else {
+                    statusElement.textContent = 'Failed';
+                    statusDotElement.className = 'status-dot error';
+                    progressBar.className = 'progress-bar';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                statusElement.textContent = 'Error';
+                statusDotElement.className = 'status-dot error';
+                progressBar.className = 'progress-bar';
+                logsElement.textContent += '\n\nError: ' + error.message;
+            });
+
+            // Start polling for logs
+            logsElement.textContent = 'Initializing...\n';
+            pollLogs();
+        });
+
+        function pollLogs() {
+            const logsElement = document.getElementById('logs');
+            const statusElement = document.getElementById('status');
+            const statusDotElement = document.getElementById('statusDot');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            
+            let lastTimestamp = 0;
+
+            const interval = setInterval(() => {
+                fetch(`/logs?since=${lastTimestamp}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.logs && data.logs.length > 0) {
+                            data.logs.forEach(log => {
+                                logsElement.textContent += log.message + '\n';
+                                lastTimestamp = Math.max(lastTimestamp, log.timestamp);
+                            });
+                            
+                            // Auto-scroll to bottom
+                            logsElement.parentElement.scrollTop = logsElement.parentElement.scrollHeight;
+                        }
+
+                        if (data.completed) {
+                            clearInterval(interval);
+                            statusElement.textContent = 'Completed';
+                            statusDotElement.className = 'status-dot';
+                            progressContainer.style.display = 'none';
+                            logsElement.textContent += '\n--- Task completed ---\n';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error polling logs:', error);
+                        clearInterval(interval);
+                        
+                        // Only update status if it's still running
+                        if (statusElement.textContent === 'Running...') {
+                            statusElement.textContent = 'Error';
+                            statusDotElement.className = 'status-dot error';
+                            progressContainer.style.display = 'none';
+                        }
+                    });
+            }, 1000);
+        }
+        
+        // Create floating elements for background effect
+        function createFloatingElements() {
+            const numElements = 15;
+            const body = document.body;
+            
+            for (let i = 0; i < numElements; i++) {
+                const element = document.createElement('div');
+                element.classList.add('floating-element');
+                
+                // Random size between 50 and 300px
+                const size = Math.random() * 250 + 50;
+                element.style.width = `${size}px`;
+                element.style.height = `${size}px`;
+                
+                // Random position
+                element.style.top = `${Math.random() * 100}%`;
+                element.style.left = `${Math.random() * 100}%`;
+                
+                // Random animation duration between 20 and 40 seconds
+                const duration = Math.random() * 20 + 20;
+                element.style.animation = `float ${duration}s infinite ease-in-out`;
+                
+                body.appendChild(element);
+            }
+        }
+        
+        // Call the function when the page loads
+        window.addEventListener('load', createFloatingElements);
+    </script>
+    
+    <style>
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0);
+            }
+            25% {
+                transform: translate(5%, 5%);
+            }
+            50% {
+                transform: translate(0, 10%);
+            }
+            75% {
+                transform: translate(-5%, 5%);
+            }
+        }
+    </style>
+</body>
+</html> 

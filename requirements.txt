@@ -1,0 +1,6 @@
+flask==2.3.3
+browser-use
+langchain-openai
+python-dotenv
+pydantic
+aiohttp 
